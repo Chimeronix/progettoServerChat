@@ -3,22 +3,40 @@
 <head>
 	<meta charset="utf-8">
 	<title>WebSocket Brugnoni & Amantini</title>
+    <style>
+      label {
+        font:
+        1rem 'Fira Sans',
+        sans-serif;
+      }
+
+      input,
+      label {
+        margin: 0.4rem 0;
+      }
+    </style>
+</head>
+<body>
+  <p>Inserire Username e Password per effettuare il Login.</p>
+  <label for="username">Username:</label>
+  <input type="text" id="username">
+  <label for="roomcode">Roomcode:</label>
+  <input type="text" id="roomcode">
+  <button onclick="login()">effettua login</button>
+
   <script>
     const ws = new WebSocket("ws://localhost:8080");
      
     ws.addEventListener('message', function (event) {
         console.log(event.data);
     });
-    function provaLogin(){
-      ws.send("login/uname/pwd");
-    }
     function login(){
-      ws.send("login/pippo/lacoca");
+      const usernameVar = document.getElementById("username").value;
+      const roomcodeVar = document.getElementById("roomcode").value;
+      const message = `login/${usernameVar}/${roomcodeVar}`;
+    
+      ws.send(message);
     }
     </script>
-</head>
-<body>
-  <button onclick="provaLogin()">prova login</button>
-  <button onclick="login()">effettua login</button>
 </body>
 </html>
