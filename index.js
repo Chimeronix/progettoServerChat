@@ -1,28 +1,34 @@
-// Importing the required modules
+// moduli
 const WebSocketServer = require('ws');
+let listeningPort = 8080;
+// creazione WebSocket
+const wss = new WebSocketServer.Server({ port: listeningPort })
  
-// Creating a new websocket server
-const wss = new WebSocketServer.Server({ port: 8080 })
- 
-// Creating connection using websocket
+// creazione connessione WebSocket
 wss.on("connection", ws => {
-    console.log("new client connected");
+    console.log("Nuovo client connesso");
  
-    // sending message to client
-    ws.send('Welcome, you are connected!');
+    // messaggio da mandare al client
+    ws.send('Sei connesso alla WebChat');
  
-    //on message from client
+    // check dati login
+    ws.on("message", data => {
+        if(data == "login/pippo/lacoca")
+        console.log(`Il client ha inviato i dati di login: ${data}`)
+    });
+
+    // gestione arrivo messaggio client
     ws.on("message", data => {
         console.log(`Client has sent us: ${data}`)
     });
  
-    // handling what to do when clients disconnects from server
+    // disconessione client
     ws.on("close", () => {
-        console.log("the client has connected");
+        console.log("Il client si è disconnesso!");
     });
-    // handling client connection error
+    // gestione errore connessione client
     ws.onerror = function () {
-        console.log("Some Error occurred")
+        console.log("E' stato riscontrato un errore")
     }
 });
-console.log("The WebSocket server is running on port 8080");
+console.log("Il WebSocket è in ascolto nella porta "+ listeningPort);

@@ -2,20 +2,23 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>NodeJS WebSocket Server</title>
+	<title>WebSocket Brugnoni & Amantini</title>
+  <script>
+    const ws = new WebSocket("ws://localhost:8080");
+     
+    ws.addEventListener('message', function (event) {
+        console.log(event.data);
+    });
+    function provaLogin(){
+      ws.send("login/uname/pwd");
+    }
+    function login(){
+      ws.send("login/pippo/lacoca");
+    }
+    </script>
 </head>
 <body>
-	<h1>Hello world</h1>
-<script>
-const ws = new WebSocket("ws://localhost:8080");
-ws.addEventListener("open", () =>{
-  console.log("We are connected");
-  ws.send("How are you?");
-});
- 
-ws.addEventListener('message', function (event) {
-    console.log(event.data);
-});
-</script>
+  <button onclick="provaLogin()">prova login</button>
+  <button onclick="login()">effettua login</button>
 </body>
 </html>
