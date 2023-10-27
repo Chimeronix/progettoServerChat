@@ -28,6 +28,7 @@ wss.on("connection", ws => {
             users[index]=splitMessage[1];
             ws.send("OK.");
             index++;
+            
         } else {
             ws.send("Errore.");
             ws.close();
@@ -41,7 +42,6 @@ wss.on("connection", ws => {
     // disconessione client
     ws.on("close", () => {
         console.log("Il client si è disconnesso!");
-        users
     });
     // gestione errore connessione client
     ws.onerror = function () {
