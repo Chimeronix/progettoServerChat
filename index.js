@@ -2,46 +2,50 @@
 const WebSocketServer = require('ws');
 let listeningPort = 8080;
 let splitMessage;
-let users;
-let index=0;
 // dati di test da cancellare
 let usr = "ciao";
 let psw = "123";
 
+
 // creazione WebSocket
-const wss = new WebSocketServer.Server({ port: listeningPort })
-  
+const wss = new WebSocketServer.Server({ port: listeningPort });
+wss.getUsername = function () {
+    function user() {
+        return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+    }
+    return user();
+};
 // creazione connessione WebSocket
 wss.on("connection", ws => {
     console.log("Nuovo client connesso.");
  
     // messaggio da mandare al client
     ws.send('Sei stato connesso al WebSocket.');   
- 
+        
     // check dati login
     ws.on("message", data => {
-        //           arr 1 | arr |2 arr 3
-        //if(data == "login/pippo/lacoca"){
-            let stringa = data.toString();
-         splitMessage = stringa.split("/");
-        if(usr == splitMessage[1] && psw == splitMessage[2]){
-            users[index]=splitMessage[1];
+        let dataString = data.toString();
+        splitMessage = dataString.split("/");
+        let username = splitMessage[1];
+        let password = splitMessage[2];
+        if(usr == username && psw == password){
+            wss.getUsername = function () {
+                function user() {
+                    return username;
+                }
+                return user();
+            };
             ws.send("OK.");
-            index++;
-        } else {
+            ws.id = wss.getUsername();
+            console.log(`Un client ha effettuato correttamente il login, ho assegnato l'ID ${ws.id}.`);
+            //index++;
             ws.send("Errore.");
             ws.close();
         }
     });    
-    // gestione arrivo messaggio client
-    /*ws.on("message", data => {
-        console.log(`Il client ha mandato al server: ${data}`)
-    });*/
- 
     // disconessione client
     ws.on("close", () => {
-        console.log("Il client si è disconnesso!");
-        users
+        console.log(`Un client con id ${ws.id} si è disconnesso.`);
     });
     // gestione errore connessione client
     ws.onerror = function () {
