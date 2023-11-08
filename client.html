@@ -20,9 +20,12 @@
   <p>Inserire Username e Password per effettuare il Login.</p>
   <label for="username">Username:</label>
   <input type="text" id="username">
-  <label for="roomcode">Roomcode:</label>
-  <input type="text" id="roomcode">
+  <label for="password">Password:</label>
+  <input type="text" id="password">
+  <label for="messaggio">Messaggio:</label>
+  <input type="text" id="messaggio">
   <button onclick="login()">effettua login</button>
+  <button onclick="inviaMessaggio()">invia messaggio</button>
 
   <script>
     const ws = new WebSocket("ws://localhost:8080");
@@ -32,10 +35,15 @@
     });
     function login(){
       const usernameVar = document.getElementById("username").value;
-      const roomcodeVar = document.getElementById("roomcode").value;
-      const message = `login/${usernameVar}/${roomcodeVar}`;
+      const passwordVar = document.getElementById("password").value;
+      const message = `login/${usernameVar}/${passwordVar}`;
     
       ws.send(message);
+    }
+
+    function inviaMessaggio(){
+      const messaggio = document.getElementById("messaggio").value;
+      ws.send(`messaggio/${messaggio}`);
     }
     </script>
 </body>
