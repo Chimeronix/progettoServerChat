@@ -2,6 +2,8 @@ const WebSocketServer = require('ws');
 let listeningPort = 8080;
 let splitMessage;
 let clientsList = [];
+const fs = require("fs");
+const path = "credenziali.csv"; 
 let usr = "Aemantis";
 let psw = "123";
 let usr1 = "Brugnir";
@@ -31,10 +33,6 @@ wss.on("connection", ws => {
             case "messaggio":
                 handleMessage(ws, splitMessage[1]);
                 break;
-            default:
-                ws.send("Messaggio non valido.");
-                ws.close();
-                break;
         }
     });
 
@@ -45,8 +43,7 @@ wss.on("connection", ws => {
         if (index !== -1) {
             clientsList.splice(index, 1);
         }
-        console.log(`Clients connessi al momento: ${clientsList}.`);
-
+        console.log(`Clients connessi al momento: ${clientsList}`);
         const userListMessage = `listautenti/${clientsList.join('/')}`;
 
         wss.clients.forEach(client => {
@@ -95,7 +92,7 @@ function handleMessage(ws, message) {
     const senderId = ws.id;
 
     wss.clients.forEach(client => {
-        if (client !== ws && client.readyState === WebSocketServer.OPEN) {
+        if (client.readyState === WebSocketServer.OPEN) {
             client.send(`messaggio/${senderId}/${hour}:${min}/${message}`);
         }
     });
