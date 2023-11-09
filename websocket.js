@@ -4,12 +4,6 @@ let splitMessage;
 let clientsList = [];
 const fs = require("fs");
 const path = "credenziali.csv";
-let usr = "Aemantis";
-let psw = "123";
-let usr1 = "Brugnir";
-let psw1 = "123";
-let usr2 = "Manci";
-let psw2 = "123";
 const RESET = "\x1b[0m";
 const RED = "\x1b[31m";
 const GREEN = "\x1b[32m";
@@ -83,51 +77,26 @@ function handleLogin(ws, username, password) {
                 }
                 return user();
             };
-            ws.send("OK.");
-            ws.id = ws.getUsername();
-            console.log(`${GREEN}Un client ha effettuato correttamente il login, ho assegnato l'ID [${ws.id}].${RESET}`);
-            clientsList.push(ws.id);
-            console.log(`Clients connessi al momento: ${clientsList}.`);
-            const userListMessage = `listautenti/${clientsList.join('/')}`;
-
-            wss.clients.forEach(client => {
-                if (client.readyState === WebSocketServer.OPEN) {
-                    client.send(userListMessage);
-                }
-            });
-            return;
-        } /*else {
-            ws.send("Errore.");
-            ws.close();
-        }*/
+        }
     });
+    if(found){
+        ws.send("OK.");
+        ws.id = ws.getUsername();
+        console.log(`${GREEN}Un client ha effettuato correttamente il login, ho assegnato l'ID [${ws.id}].${RESET}`);
+        clientsList.push(ws.id);
+        console.log(`Clients connessi al momento: ${clientsList}.`);
+        const userListMessage = `listautenti/${clientsList.join('/')}`;
 
-    /*
-   if ((usr == username || usr1 == username || usr2 == username) && (psw == password || psw1 == password || psw2 == password)) {
-       // funzione per determiare l'id, tramite username
-       ws.getUsername = function () {
-           function user() {
-               return username;
-           }
-           return user();
-       };
-       ws.send("OK.");
-       ws.id = ws.getUsername();
-       console.log(`${GREEN}Un client ha effettuato correttamente il login, ho assegnato l'ID [${ws.id}].${RESET}`);
-       clientsList.push(ws.id);
-       console.log(`Clients connessi al momento: ${clientsList}.`);
-       const userListMessage = `listautenti/${clientsList.join('/')}`;
-
-       wss.clients.forEach(client => {
-           if (client.readyState === WebSocketServer.OPEN) {
-               client.send(userListMessage);
-           }
-       });
-   } else {
-       ws.send("Errore.");
-       ws.close();
-   }
-   */
+        wss.clients.forEach(client => {
+            if (client.readyState === WebSocketServer.OPEN) {
+                client.send(userListMessage);
+            }
+        });
+        return;
+    } else {
+        ws.send("Errore.");
+        ws.close();
+    }
 }
 
 function handleMessage(ws, message) {
