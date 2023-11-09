@@ -3,7 +3,7 @@ let listeningPort = 8080;
 let splitMessage;
 let clientsList = [];
 const fs = require("fs");
-const path = "credenziali.csv"; 
+const path = "credenziali.csv";
 let usr = "Aemantis";
 let psw = "123";
 let usr1 = "Brugnir";
@@ -15,6 +15,16 @@ const RED = "\x1b[31m";
 const GREEN = "\x1b[32m";
 const YELLOW = "\x1b[33m";
 const wss = new WebSocketServer.Server({ port: listeningPort });
+
+// lettura del file csv e seguente chiamata della funzione
+fs.readFile(path, "utf8", (err, data) => {
+    if (err) {
+        console.error("Error while reading:", err);
+        return;
+    }
+    lines = data.split("\n");
+}
+);
 
 wss.on("connection", ws => {
     console.log("Nuovo client connesso al WebSocket.");
@@ -60,29 +70,64 @@ wss.on("connection", ws => {
 
 
 function handleLogin(ws, username, password) {
-    if ((usr == username || usr1 == username || usr2 == username) && (psw == password || psw1 == password || psw2 == password)) {
-        ws.getUsername = function () {
-            function user() {
-                return username;
-            }
-            return user();
-        };
-        ws.send("OK.");
-        ws.id = ws.getUsername();
-        console.log(`${GREEN}Un client ha effettuato correttamente il login, ho assegnato l'ID [${ws.id}].${RESET}`);
-        clientsList.push(ws.id);
-        console.log(`Clients connessi al momento: ${clientsList}.`);
-        const userListMessage = `listautenti/${clientsList.join('/')}`;
+    found = false;
+    lines.forEach((line) => {
+        line = line.trim();
+        const [lineUsr, linePsw] = line.split(",");
+        if (lineUsr == username && linePsw == password) {
+            found = true;
+            // funzione per determiare l'id, tramite username
+            ws.getUsername = function () {
+                function user() {
+                    return username;
+                }
+                return user();
+            };
+            ws.send("OK.");
+            ws.id = ws.getUsername();
+            console.log(`${GREEN}Un client ha effettuato correttamente il login, ho assegnato l'ID [${ws.id}].${RESET}`);
+            clientsList.push(ws.id);
+            console.log(`Clients connessi al momento: ${clientsList}.`);
+            const userListMessage = `listautenti/${clientsList.join('/')}`;
 
-        wss.clients.forEach(client => {
-            if (client.readyState === WebSocketServer.OPEN) {
-                client.send(userListMessage);
-            }
-        });
-    } else {
-        ws.send("Errore.");
-        ws.close();
-    }
+            wss.clients.forEach(client => {
+                if (client.readyState === WebSocketServer.OPEN) {
+                    client.send(userListMessage);
+                }
+            });
+            return;
+        } /*else {
+            ws.send("Errore.");
+            ws.close();
+        }*/
+    });
+
+    /*
+   if ((usr == username || usr1 == username || usr2 == username) && (psw == password || psw1 == password || psw2 == password)) {
+       // funzione per determiare l'id, tramite username
+       ws.getUsername = function () {
+           function user() {
+               return username;
+           }
+           return user();
+       };
+       ws.send("OK.");
+       ws.id = ws.getUsername();
+       console.log(`${GREEN}Un client ha effettuato correttamente il login, ho assegnato l'ID [${ws.id}].${RESET}`);
+       clientsList.push(ws.id);
+       console.log(`Clients connessi al momento: ${clientsList}.`);
+       const userListMessage = `listautenti/${clientsList.join('/')}`;
+
+       wss.clients.forEach(client => {
+           if (client.readyState === WebSocketServer.OPEN) {
+               client.send(userListMessage);
+           }
+       });
+   } else {
+       ws.send("Errore.");
+       ws.close();
+   }
+   */
 }
 
 function handleMessage(ws, message) {
