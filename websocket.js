@@ -2,17 +2,23 @@ const WebSocketServer = require('ws');
 let listeningPort = 8080;
 let splitMessage;
 let clientsList = [];
-let usr = "Aemantis";
-let psw = "123";
-let usr1 = "Brugnir";
-let psw1 = "123";
-let usr2 = "Manci";
-let psw2 = "123";
+const fs = require("fs");
+const path = "credenziali.csv";
 const RESET = "\x1b[0m";
 const RED = "\x1b[31m";
 const GREEN = "\x1b[32m";
 const YELLOW = "\x1b[33m";
 const wss = new WebSocketServer.Server({ port: listeningPort });
+
+// lettura del file csv e seguente chiamata della funzione
+fs.readFile(path, "utf8", (err, data) => {
+    if (err) {
+        console.error("Error while reading:", err);
+        return;
+    }
+    lines = data.split("\n");
+}
+);
 
 wss.on("connection", ws => {
     console.log("Nuovo client connesso al WebSocket. In attesa del login...");
@@ -58,13 +64,22 @@ wss.on("connection", ws => {
 
 
 function handleLogin(ws, username, password) {
-    if ((usr == username || usr1 == username || usr2 == username) && (psw == password || psw1 == password || psw2 == password)) {
-        ws.getUsername = function () {
-            function user() {
-                return username;
-            }
-            return user();
-        };
+    found = false;
+    lines.forEach((line) => {
+        line = line.trim();
+        const [lineUsr, linePsw] = line.split(",");
+        if (lineUsr == username && linePsw == password) {
+            found = true;
+            // funzione per determiare l'id, tramite username
+            ws.getUsername = function () {
+                function user() {
+                    return username;
+                }
+                return user();
+            };
+        }
+    });
+    if(found){
         ws.send("OK.");
         ws.id = ws.getUsername();
         console.log(`${GREEN}Un client ha effettuato correttamente il login, ho assegnato l'ID [${ws.id}].${RESET}`);
@@ -77,6 +92,7 @@ function handleLogin(ws, username, password) {
                 client.send(userListMessage);
             }
         });
+        return;
     } else {
         ws.send("Errore.");
         ws.close();
