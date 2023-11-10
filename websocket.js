@@ -2,8 +2,6 @@ const WebSocketServer = require('ws');
 let listeningPort = 8080;
 let splitMessage;
 let clientsList = [];
-const fs = require("fs");
-const path = "credenziali.csv"; 
 let usr = "Aemantis";
 let psw = "123";
 let usr1 = "Brugnir";
@@ -17,7 +15,7 @@ const YELLOW = "\x1b[33m";
 const wss = new WebSocketServer.Server({ port: listeningPort });
 
 wss.on("connection", ws => {
-    console.log("Nuovo client connesso al WebSocket.");
+    console.log("Nuovo client connesso al WebSocket. In attesa del login...");
 
     ws.send('Sei stato connesso al WebSocket.');
 
