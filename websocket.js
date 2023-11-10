@@ -24,7 +24,7 @@ wss.on("connection", ws => {
     console.log("Nuovo client connesso al WebSocket. In attesa del login...");
 
     ws.send('Sei stato connesso al WebSocket.');
-
+    ws.logged = false;
     ws.on("message", data => {
         let dataString = data.toString();
         splitMessage = dataString.split("/");
@@ -80,20 +80,21 @@ function handleLogin(ws, username, password) {
         }
     });
     if(found){
+        ws.logged = true;
         ws.send("OK.");
         ws.id = ws.getUsername();
         console.log(`${GREEN}Un client ha effettuato correttamente il login, ho assegnato l'ID [${ws.id}].${RESET}`);
         clientsList.push(ws.id);
         console.log(`Clients connessi al momento: ${clientsList}.`);
         const userListMessage = `listautenti/${clientsList.join('/')}`;
-
         wss.clients.forEach(client => {
-            if (client.readyState === WebSocketServer.OPEN) {
+            if (client.logged) {
                 client.send(userListMessage);
             }
         });
         return;
     } else {
+        ws.logged = false;
         ws.send("Errore.");
         ws.close();
     }
@@ -105,8 +106,10 @@ function handleMessage(ws, message) {
     const min = date.getMinutes();
     const senderId = ws.id;
 
+    console.log("====================== BROADCAST! ==========================");
     wss.clients.forEach(client => {
-        if (client.readyState === WebSocketServer.OPEN) {
+        console.log(ws.id+": "+ws.logged);
+        if (ws.logged) {
             client.send(`messaggio/${senderId}/${hour}:${min}/${message}`);
         }
     });
