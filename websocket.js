@@ -3,6 +3,7 @@ let listeningPort = 8080;
 let splitMessage;
 let clientsList = [];
 let messagesHistory = [];
+let duplicated = false;
 const fs = require("fs");
 const path = "credenziali.csv";
 const RESET = "\x1b[0m";
@@ -67,6 +68,7 @@ wss.on("connection", ws => {
 
 
 function handleLogin(ws, username, password) {
+    duplicated = false;
     found = false;
     lines.forEach((line) => {
         line = line.trim();
@@ -82,7 +84,12 @@ function handleLogin(ws, username, password) {
             };
         }
     });
-    if(found){
+    for(let i=0; i<clientsList.length;i++){
+        if(clientsList[i] == username && !duplicated){
+            duplicated = true;
+        }
+    }
+    if(found && !duplicated){
         ws.logged = true;
         ws.send("OK.");
         ws.id = ws.getUsername();
