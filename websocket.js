@@ -2,6 +2,7 @@ const WebSocketServer = require('ws');
 let listeningPort = 8080;
 let splitMessage;
 let clientsList = [];
+let messagesHistory = [];
 const fs = require("fs");
 const path = "credenziali.csv";
 const RESET = "\x1b[0m";
@@ -37,6 +38,8 @@ wss.on("connection", ws => {
             case "messaggio":
                 handleMessage(ws, splitMessage[1]);
                 break;
+            case "storico":
+                handleStorico(ws, splitMessage[1], splitMessage[2]);
         }
     });
 
@@ -105,12 +108,12 @@ function handleMessage(ws, message) {
     const hour = date.getHours();
     const min = date.getMinutes();
     const senderId = ws.id;
-
-    console.log("====================== BROADCAST! ==========================");
+    const messageBroadcast = `messaggio/${senderId}/${hour}:${min}/${message}`;
     wss.clients.forEach(client => {
-        console.log(ws.id+": "+ws.logged);
-        if (ws.logged) {
-            client.send(`messaggio/${senderId}/${hour}:${min}/${message}`);
+        if (client.logged) {
+            client.send(messageBroadcast);
+            messagesHistory.push(messageBroadcast);
+            console.log(messageBroadcast);
         }
     });
 }
