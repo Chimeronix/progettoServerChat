@@ -3,6 +3,7 @@ let listeningPort = 8080;
 let splitMessage;
 let clientsList = [];
 let messagesHistory = [];
+let messageHistoryDisplay;
 let duplicated = false;
 const fs = require("fs");
 const path = "credenziali.csv";
@@ -102,6 +103,10 @@ function handleLogin(ws, username, password) {
                 client.send(userListMessage);
             }
         });
+        for(let i=0; i<messagesHistory.length;i++){
+            ws.send(messagesHistory[i]);
+        }
+        console.log(`Array messaggi: ${messagesHistory}`);
         return;
     } else {
         ws.logged = false;
@@ -119,10 +124,12 @@ function handleMessage(ws, message) {
     wss.clients.forEach(client => {
         if (client.logged) {
             client.send(messageBroadcast);
-            messagesHistory.push(messageBroadcast);
-            console.log(messageBroadcast);
         }
     });
+    messagesHistory.push(messageBroadcast); // TODO da fixare orario 
 }
 
 console.log(`Il WebSocket è in ascolto nella porta ${listeningPort}.`);
+
+// NEL MOMENTO CHE ENTRO DENTRO IL SERVER, UN CLIENT DOVRA' RICHIEDERE
+// OBBLIGATORIAMENTE TUTTA LA LISTA DEI MESSAGGI (AL MOMENTO DEL LOGIN)
