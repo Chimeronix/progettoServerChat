@@ -1,17 +1,21 @@
+// variabili 
 const WebSocketServer = require('ws');
 let listeningPort = 8080;
+const wss = new WebSocketServer.Server({ port: listeningPort });
+
 let splitMessage;
 let clientsList = [];
 let messagesHistory = [];
-let messageHistoryDisplay;
+
 let duplicated = false;
+
 const fs = require("fs");
 const path = "credenziali.csv";
+
 const RESET = "\x1b[0m";
 const RED = "\x1b[31m";
 const GREEN = "\x1b[32m";
 const YELLOW = "\x1b[33m";
-const wss = new WebSocketServer.Server({ port: listeningPort });
 
 // lettura del file csv e seguente chiamata della funzione
 fs.readFile(path, "utf8", (err, data) => {
@@ -22,7 +26,6 @@ fs.readFile(path, "utf8", (err, data) => {
     lines = data.split("\n");
 }
 );
-
 wss.on("connection", ws => {
     console.log("Nuovo client connesso al WebSocket. In attesa del login...");
 
@@ -31,9 +34,9 @@ wss.on("connection", ws => {
     ws.on("message", data => {
         let dataString = data.toString();
         splitMessage = dataString.split("/");
-        const messageCommand = splitMessage[0];
-
-        switch (messageCommand) {
+        const splitCases = splitMessage[0];
+        // gestione tipo di messaggio da parte del client con consecutiva chiamata alla rispettiva funzione
+        switch (splitCases) {
             case "login":
                 handleLogin(ws, splitMessage[1], splitMessage[2]);
                 break;
@@ -47,17 +50,20 @@ wss.on("connection", ws => {
 
     ws.on("close", () => {
         console.log(`${YELLOW}Il client con ID [${ws.id}] si è disconnesso.${RESET}`);
-        const index = clientsList.indexOf(ws.id);
-
-        if (index !== -1) {
-            clientsList.splice(index, 1);
+        // scorro tramite indexOf() la lista dei clients connessi
+        const indexClientsList = clientsList.indexOf(ws.id);
+        // se trova un'occorrenza mi rimuove l'elemento trovato nel posto in cui si trova l'indice
+        if (indexClientsList !== -1) {
+            clientsList.splice(indexClientsList, 1);
         }
         console.log(`Clients connessi al momento: ${clientsList}`);
+        // mando in broadcast a chi ha effettuato il login la lista utenti connessi
         const userListMessage = `listautenti/${clientsList.join('/')}`;
-
         wss.clients.forEach(client => {
             if (client.readyState === WebSocketServer.OPEN) {
-                client.send(userListMessage);
+                if (client.logged) {
+                    client.send(userListMessage);
+                }
             }
         });
     });
@@ -85,6 +91,7 @@ function handleLogin(ws, username, password) {
             };
         }
     });
+    // 
     for(let i=0; i<clientsList.length;i++){
         if(clientsList[i] == username && !duplicated){
             duplicated = true;
@@ -104,10 +111,13 @@ function handleLogin(ws, username, password) {
             }
         });
         // scorro lista storico e invio i messaggi salvati nella lista
-        for(let i=0; i<messagesHistory.length;i++){
-            ws.send(messagesHistory[i]);
+        if(messagesHistory.length==0){
+            ws.send("storico vuoto");
+        } else {
+            for(let i=0; i<messagesHistory.length;i++){
+                ws.send(messagesHistory[i]);
+            }
         }
-        console.log(`Array messaggi: ${messagesHistory}`);
         return;
     } else {
         ws.logged = false;
@@ -117,20 +127,20 @@ function handleLogin(ws, username, password) {
 }
 
 function handleMessage(ws, message) {
+    // dichiarazione variabili per formattare correttamente il messaggio da mandare ai clients
     const date = new Date();
     const hour = date.getHours();
     const min = date.getMinutes();
     const senderId = ws.id;
     const messageBroadcast = `messaggio/${senderId}/${hour}:${min}/${message}`;
+    // mando in broadcast a chi ha effettuato il login il messaggio del client
     wss.clients.forEach(client => {
         if (client.logged) {
             client.send(messageBroadcast);
         }
     });
+    // inserisco nell'array dello storico il messaggio mandato
     messagesHistory.push(messageBroadcast); // TODO da fixare orario 
 }
 
 console.log(`Il WebSocket è in ascolto nella porta ${listeningPort}.`);
-
-// NEL MOMENTO CHE ENTRO DENTRO IL SERVER, UN CLIENT DOVRA' RICHIEDERE
-// OBBLIGATORIAMENTE TUTTA LA LISTA DEI MESSAGGI (AL MOMENTO DEL LOGIN)
