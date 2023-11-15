@@ -103,6 +103,7 @@ function handleLogin(ws, username, password) {
                 client.send(userListMessage);
             }
         });
+        // scorro lista storico e invio i messaggi salvati nella lista
         for(let i=0; i<messagesHistory.length;i++){
             ws.send(messagesHistory[i]);
         }
