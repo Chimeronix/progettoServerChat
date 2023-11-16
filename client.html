@@ -20,12 +20,21 @@
   <p>Inserire Username e Password per effettuare il Login.</p>
   <label for="username">Username:</label>
   <input type="text" id="username">
+
   <label for="password">Password:</label>
   <input type="text" id="password" value="123">
+
   <label for="messaggio">Messaggio:</label>
   <input type="text" id="messaggio">
+
+  <label for="daora">Da che ora:</label>
+  <input type="text" id="daora">
+
+  <label for="aora">A che ora:</label>
+  <input type="text" id="aora">
   <button onclick="login()">effettua login</button>
   <button onclick="inviaMessaggio()">invia messaggio</button>
+  <button onclick="richiestaStorico()">richiedi storico</button>
 
   <script>
     const ws = new WebSocket("ws://localhost:8080");
@@ -42,8 +51,18 @@
     }
 
     function inviaMessaggio(){
+      const date = new Date();
+      const hour = date.getHours();
+      const min = date.getMinutes();
+      const usernameVar2 = document.getElementById("username").value;
       const messaggio = document.getElementById("messaggio").value;
-      ws.send(`messaggio/${messaggio}`);
+      ws.send(`messaggio/${usernameVar2}/${hour}:${min}/${messaggio}`);
+    }
+
+    function richiestaStorico(){
+      const da_ora = document.getElementById("daora");
+      const a_ora = document.getElementById("aora");
+      ws.send(`storico/${da_ora}/${a_ora}`);
     }
     </script>
 </body>

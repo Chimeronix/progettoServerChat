@@ -41,7 +41,7 @@ wss.on("connection", ws => {
                 handleLogin(ws, splitMessage[1], splitMessage[2]);
                 break;
             case "messaggio":
-                handleMessage(ws, splitMessage[1]);
+                handleMessage(ws, splitMessage[1],splitMessage[2],splitMessage[3]);
                 break;
             case "storico":
                 handleStorico(ws, splitMessage[1], splitMessage[2]);
@@ -112,7 +112,7 @@ function handleLogin(ws, username, password) {
         });
         // scorro lista storico e invio i messaggi salvati nella lista
         if(messagesHistory.length==0){
-            ws.send("storico vuoto");
+            ws.send("Storico vuoto");
         } else {
             for(let i=0; i<messagesHistory.length;i++){
                 ws.send(messagesHistory[i]);
@@ -126,14 +126,17 @@ function handleLogin(ws, username, password) {
     }
 }
 
-function handleMessage(ws, message) {
-    // dichiarazione variabili per formattare correttamente il messaggio da mandare ai clients
-    const date = new Date();
-    const hour = date.getHours();
-    const min = date.getMinutes();
-    const senderId = ws.id;
-    const messageBroadcast = `messaggio/${senderId}/${hour}:${min}/${message}`;
-    // mando in broadcast a chi ha effettuato il login il messaggio del client
+function handleMessage(ws, id, ore, message) {
+    const messageBroadcast =`messaggio/${id}/${ore}/${message}`; 
+    let [hours, minutes] = ore.split(":");
+    console.log("prima"+hours + minutes);
+    if(hours.length == 1){  
+        hours="0"+hours;
+    }
+    if(minutes.length == 1){  
+        minutes=`0${minutes}`;
+    }
+    console.log("dopo"+hours);
     wss.clients.forEach(client => {
         if (client.logged) {
             client.send(messageBroadcast);
@@ -144,3 +147,10 @@ function handleMessage(ws, message) {
 }
 
 console.log(`Il WebSocket è in ascolto nella porta ${listeningPort}.`);
+
+
+// BISOGNA TRASFORMARE LE ORE E MINUTI QUANDO
+// 8:4 ---> CONTROLLO LA LUNGHEZZA DI ENTRAMBI SE è = 1 AGGIUNGO UNO 0 ALLA STRINGA 
+// COSI AVRò 08:04 E POTRO FARE EVENTUALI CONFRONTI PER LO STORICO
+// PER LO STORICO CONTROLLERò (DATE DUE ORE 08:04 E 18:22) CONTROLLO TUTTI I MESSAGGI NELL
+// ARRAY MAGGIORI DI 0804 E MINORI DI 1822 !!!!!!  
