@@ -8,7 +8,7 @@ let clientsList = [];
 let messagesHistory = [];
 
 let duplicated = false;
-
+let messageBroadcast;
 const fs = require("fs");
 const path = "credenziali.csv";
 
@@ -41,7 +41,7 @@ wss.on("connection", ws => {
                 handleLogin(ws, splitMessage[1], splitMessage[2]);
                 break;
             case "messaggio":
-                handleMessage(ws, splitMessage[1],splitMessage[2],splitMessage[3]);
+                handleMessage(ws, splitMessage[1], splitMessage[2], splitMessage[3]);
                 break;
             case "storico":
                 handleStorico(ws, splitMessage[1], splitMessage[2]);
@@ -92,12 +92,12 @@ function handleLogin(ws, username, password) {
         }
     });
     // 
-    for(let i=0; i<clientsList.length;i++){
-        if(clientsList[i] == username && !duplicated){
+    for (let i = 0; i < clientsList.length; i++) {
+        if (clientsList[i] == username && !duplicated) {
             duplicated = true;
         }
     }
-    if(found && !duplicated){
+    if (found && !duplicated) {
         ws.logged = true;
         ws.send("OK.");
         ws.id = ws.getUsername();
@@ -110,14 +110,6 @@ function handleLogin(ws, username, password) {
                 client.send(userListMessage);
             }
         });
-        // scorro lista storico e invio i messaggi salvati nella lista
-        if(messagesHistory.length==0){
-            ws.send("Storico vuoto");
-        } else {
-            for(let i=0; i<messagesHistory.length;i++){
-                ws.send(messagesHistory[i]);
-            }
-        }
         return;
     } else {
         ws.logged = false;
@@ -127,30 +119,39 @@ function handleLogin(ws, username, password) {
 }
 
 function handleMessage(ws, id, ore, message) {
-    const messageBroadcast =`messaggio/${id}/${ore}/${message}`; 
+    messageBroadcast = `messaggio/${id}/${ore}/${message}`;
     let [hours, minutes] = ore.split(":");
-    console.log("prima"+hours + minutes);
-    if(hours.length == 1){  
-        hours="0"+hours;
+    if (hours.length == 1) {
+        hours = "0" + hours;
     }
-    if(minutes.length == 1){  
-        minutes=`0${minutes}`;
+    if (minutes.length == 1) {
+        minutes = `0${minutes}`;
     }
-    console.log("dopo"+hours);
+    time = hours + ":" + minutes;
+    messageBroadcast = `messaggio/${id}/${time}/${message}`;
     wss.clients.forEach(client => {
         if (client.logged) {
             client.send(messageBroadcast);
         }
     });
     // inserisco nell'array dello storico il messaggio mandato
-    messagesHistory.push(messageBroadcast); // TODO da fixare orario 
+    messagesHistory.push(messageBroadcast);
 }
-
+function handleStorico(ws, hourBegin, hourEnd) {
+    let split;
+    let hr;
+    if (ws.logged) {
+        if (messagesHistory.length == 0) {
+            ws.send("Storico vuoto");
+        } else {
+            for (let i = 0; i < messagesHistory.length; i++) {
+                split = messagesHistory[i].split("/");
+                hr = split[2];
+                if (hourBegin <= hr && hr <= hourEnd) {
+                    ws.send(messagesHistory[i]);
+                }
+            }
+        }
+    }
+}
 console.log(`Il WebSocket è in ascolto nella porta ${listeningPort}.`);
-
-
-// BISOGNA TRASFORMARE LE ORE E MINUTI QUANDO
-// 8:4 ---> CONTROLLO LA LUNGHEZZA DI ENTRAMBI SE è = 1 AGGIUNGO UNO 0 ALLA STRINGA 
-// COSI AVRò 08:04 E POTRO FARE EVENTUALI CONFRONTI PER LO STORICO
-// PER LO STORICO CONTROLLERò (DATE DUE ORE 08:04 E 18:22) CONTROLLO TUTTI I MESSAGGI NELL
-// ARRAY MAGGIORI DI 0804 E MINORI DI 1822 !!!!!!  

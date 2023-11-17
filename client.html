@@ -60,8 +60,8 @@
     }
 
     function richiestaStorico(){
-      const da_ora = document.getElementById("daora");
-      const a_ora = document.getElementById("aora");
+      const da_ora = document.getElementById("daora").value;
+      const a_ora = document.getElementById("aora").value;
       ws.send(`storico/${da_ora}/${a_ora}`);
     }
     </script>
