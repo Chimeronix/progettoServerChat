@@ -137,16 +137,22 @@ function handleMessage(ws, id, ore, message) {
     messagesHistory.push(messageBroadcast);
 }
 function handleStorico(ws, hourBegin, hourEnd) {
-    let split;
-    let hr;
+    let splitMsg;
+    let hourMessage;
     if (ws.logged) {
         if (messagesHistory.length == 0) {
             ws.send("Storico vuoto");
         } else {
             for (let i = 0; i < messagesHistory.length; i++) {
-                split = messagesHistory[i].split("/");
-                hr = split[2];
-                if (hourBegin <= hr && hr <= hourEnd) {
+                splitMsg = messagesHistory[i].split("/");
+                hourMessage = splitMsg[2];
+                /*
+                 12:04 <= 12:05 && 12:05 <= 12:12
+                 |         ^(ora mess)^       |
+                 ------------------------------
+                          intervallo
+                */
+                if (hourBegin <= hourMessage && hourMessage <= hourEnd) {
                     ws.send(messagesHistory[i]);
                 }
             }
