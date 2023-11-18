@@ -57,7 +57,7 @@ wss.on("connection", ws => {
             clientsList.splice(indexClientsList, 1);
         }
         console.log(`Clients connessi al momento: ${clientsList}`);
-        // mando in broadcast a chi ha effettuato il login la lista utenti connessi
+        // invio in broadcast a chi ha effettuato il login la lista utenti connessi, sostituendo la "," con una "/"
         const userListMessage = `listautenti/${clientsList.join('/')}`;
         wss.clients.forEach(client => {
             if (client.readyState === WebSocketServer.OPEN) {
@@ -91,7 +91,6 @@ function handleLogin(ws, username, password) {
             };
         }
     });
-    // 
     for (let i = 0; i < clientsList.length; i++) {
         if (clientsList[i] == username && !duplicated) {
             duplicated = true;
@@ -117,17 +116,17 @@ function handleLogin(ws, username, password) {
         ws.close();
     }
 }
-
+// funzione per gestire i messaggi
 function handleMessage(ws, id, ore, message) {
     messageBroadcast = `messaggio/${id}/${ore}/${message}`;
     let [hours, minutes] = ore.split(":");
     if (hours.length == 1) {
-        hours = "0" + hours;
+        hours = `0${hours}`;
     }
     if (minutes.length == 1) {
         minutes = `0${minutes}`;
     }
-    time = hours + ":" + minutes;
+    time = `${hours}:${minutes}`;
     messageBroadcast = `messaggio/${id}/${time}/${message}`;
     wss.clients.forEach(client => {
         if (client.logged) {
