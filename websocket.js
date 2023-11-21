@@ -32,9 +32,7 @@ wss.on("connection", ws => {
     console.log("Nuovo client connesso al WebSocket. In attesa del login...");
     ws.send('Sei stato connesso al WebSocket.');
     ws.logged = false;
-    // eseguo uno split del messaggio affinchè si possa distinguere che messaggio è:
-    // per esempio nel programma controllo il primo valore dello split
-    // in maniera tale da distinguere login da messaggio oppure da storico
+    // eseguo uno split del messaggio affinché si possa distinguere di quale messaggio si tratta:
     ws.on("message", data => {
         let dataString = data.toString();
         splitMessage = dataString.split("/");
