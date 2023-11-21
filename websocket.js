@@ -77,6 +77,7 @@ wss.on("connection", ws => {
 function handleLogin(ws, username, password) {
     duplicated = false;
     found = false;
+    // scorro il file csv e controllo se i dati inseriti sono corretti
     lines.forEach((line) => {
         line = line.trim();
         const [lineUsr, linePsw] = line.split(",");
@@ -91,11 +92,16 @@ function handleLogin(ws, username, password) {
             };
         }
     });
+    // controllo se un client si sta connettendo con dei dati
+    // di un client il quale ha gia' effettuato il login
     for (let i = 0; i < clientsList.length; i++) {
         if (clientsList[i] == username && !duplicated) {
             duplicated = true;
         }
     }
+    // se il client si sta connettendo per la prima volta
+    // assegno id e lo inserisco nella lista utenti online
+    // dopo di che invio la lista utenti aggiornata
     if (found && !duplicated) {
         ws.logged = true;
         ws.send("OK.");
@@ -138,15 +144,18 @@ function handleMessage(ws, id, ore, message) {
 }
 function handleStorico(ws, hourBegin, hourEnd) {
     let split;
-    let hr;
+    let hour;
     if (ws.logged) {
         if (messagesHistory.length == 0) {
             ws.send("Storico vuoto");
         } else {
+            // scorro l'array contenente i messaggi inviati dai clients
+            // successivamente mando al client il quale li ha richiesti
+            // i messaggi dell'intervallo specificato dall'utente
             for (let i = 0; i < messagesHistory.length; i++) {
                 split = messagesHistory[i].split("/");
-                hr = split[2];
-                if (hourBegin <= hr && hr <= hourEnd) {
+                hour = split[2];
+                if (hourBegin <= hour && hour <= hourEnd) {
                     ws.send(messagesHistory[i]);
                 }
             }
