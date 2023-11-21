@@ -1,5 +1,6 @@
-// variabili 
+// dichiarazione e creazione delle variabili 
 const WebSocketServer = require('ws');
+// porta d'ascolto
 let listeningPort = 8080;
 const wss = new WebSocketServer.Server({ port: listeningPort });
 
@@ -26,11 +27,14 @@ fs.readFile(path, "utf8", (err, data) => {
     lines = data.split("\n");
 }
 );
+// quello che succede quando un client si connette al server
 wss.on("connection", ws => {
     console.log("Nuovo client connesso al WebSocket. In attesa del login...");
-
     ws.send('Sei stato connesso al WebSocket.');
     ws.logged = false;
+    // eseguo uno split del messaggio affinchè si possa distinguere che messaggio è:
+    // per esempio nel programma controllo il primo valore dello split
+    // in maniera tale da distinguere login da messaggio oppure da storico
     ws.on("message", data => {
         let dataString = data.toString();
         splitMessage = dataString.split("/");
@@ -67,18 +71,19 @@ wss.on("connection", ws => {
             }
         });
     });
-
+    // cosa succede se ho un errore
     ws.on("error", () => {
         console.error(`${RED}Errore WebSocket:${RESET}`, error);
     });
 });
 
-
+// funzione che gestisce il login 
 function handleLogin(ws, username, password) {
     duplicated = false;
     found = false;
     // scorro il file csv e controllo se i dati inseriti sono corretti
     lines.forEach((line) => {
+        // tramite trim elimino lo \r, che è presente alla fine di ogni riga dell'editor windows
         line = line.trim();
         const [lineUsr, linePsw] = line.split(",");
         if (lineUsr == username && linePsw == password) {
@@ -117,6 +122,7 @@ function handleLogin(ws, username, password) {
         });
         return;
     } else {
+        // se il login non va a successo la comunicazione si chiude ed invierà il messaggio "Errore"
         ws.logged = false;
         ws.send("Errore.");
         ws.close();
@@ -124,8 +130,13 @@ function handleLogin(ws, username, password) {
 }
 // funzione per gestire i messaggi
 function handleMessage(ws, id, ore, message) {
+    // salvo il messaggio che arriva al server
     messageBroadcast = `messaggio/${id}/${ore}/${message}`;
     let [hours, minutes] = ore.split(":");
+    // controllo la lunghezza della stringa che otterrò
+    // questo perché l'ora che arriva, se avesse uno 
+    // 0 come prima cifra delle ore e minuti,
+    // verrebbe eliminato es. (18:2)
     if (hours.length == 1) {
         hours = `0${hours}`;
     }
@@ -133,6 +144,8 @@ function handleMessage(ws, id, ore, message) {
         minutes = `0${minutes}`;
     }
     time = `${hours}:${minutes}`;
+    // inserisco il valore corretto e lo invio a tutti i clienti che hanno
+    // eseguito login
     messageBroadcast = `messaggio/${id}/${time}/${message}`;
     wss.clients.forEach(client => {
         if (client.logged) {
@@ -142,16 +155,20 @@ function handleMessage(ws, id, ore, message) {
     // inserisco nell'array dello storico il messaggio mandato
     messagesHistory.push(messageBroadcast);
 }
+// funzione che gestisce lo storico
 function handleStorico(ws, hourBegin, hourEnd) {
     let split;
     let hour;
     if (ws.logged) {
+        // se lo storico è vuoto allora invio "vuoto"
         if (messagesHistory.length == 0) {
             ws.send("Storico vuoto");
         } else {
             // scorro l'array contenente i messaggi inviati dai clients
-            // successivamente mando al client il quale li ha richiesti
-            // i messaggi dell'intervallo specificato dall'utente
+            // ogni volta prendendo in considerazione l'ora ed il minuto
+            // del messaggio, e tramite un confronto dell'ora del messaggio 
+            // con l'intervallo definito da hourBegin e hourEnd, mando
+            // tutti i messaggi in quel periodo
             for (let i = 0; i < messagesHistory.length; i++) {
                 split = messagesHistory[i].split("/");
                 hour = split[2];
