@@ -27,7 +27,7 @@ Il progetto è organizzato nei seguenti `moduli principali`:
     npm install
     ```
 
-3. **Configurare il Server**: Molto importante che si modifichi l'indirizzo IP (e se necessario anche la porta) con cui si vuole dialogare.
+3. **Configurare il Server**: Non è necessario ma si può modificare la porta d'ascolto del server.
 
 4. **Avviare il Server**: Esegui il server con il comando in console:
     ```bash
@@ -56,7 +56,7 @@ Il progetto è organizzato nei seguenti `moduli principali`:
   - GitHub: [github.com/amantini](https://github.com/amantini)
 
 - **Alexandro Brugnoni**
-  - GitHub: [https://github.com/Chimeronix](https://github.com/Chimeronix)
+  - GitHub: [github.com/Chimeronix](https://github.com/Chimeronix)
 
 
  # Server Inception
